@@ -21,19 +21,30 @@
 
   <ItemGroup>
     <None Remove="Resources\pyRevit_4.8.16.24121_signed.exe" />
-    <None Remove="Resources\pyRevit_5.0.0.24325_signed.exe" />
+    <None Remove="Resources\pyRevit_5.0.0.25025_signed.exe" />
+    <None Remove="settings.config" />
   </ItemGroup>
 
-  <ItemGroup>
+	<ItemGroup>
     <EmbeddedResource Include="Resources\pyRevit_4.8.16.24121_signed.exe">
       <CopyToOutputDirectory>Never</CopyToOutputDirectory>
     </EmbeddedResource>
-    <EmbeddedResource Include="Resources\pyRevit_5.0.0.24325_signed.exe">
+    <EmbeddedResource Include="Resources\pyRevit_5.0.0.25025_signed.exe">
       <CopyToOutputDirectory>Never</CopyToOutputDirectory>
     </EmbeddedResource>
   </ItemGroup>
 
   <ItemGroup>
     <None Include="Properties\PublishProfiles\FolderProfile.pubxml.user" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="System.Configuration.ConfigurationManager" Version="9.0.1" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Update="settings.ini">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
   </ItemGroup>
 </Project>

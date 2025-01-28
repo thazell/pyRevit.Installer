@@ -1,9 +1,14 @@
 ﻿using pyRevit.Installer.Utils;
+using System.Configuration;
+
+
 
 namespace pyRevit.Installer;
 
 internal static class Program
 {
+
+
     private static void Main()
     {
         Console.WriteLine("Welcome to the (Unofficial) pyRevit Installer!");
@@ -17,10 +22,10 @@ internal static class Program
         Console.WriteLine("pyRevit installations located elsewhere will NOT be removed, but you will need to attach to Revit to use these versions again");
         Console.WriteLine();
 
-        Console.WriteLine("Included Versions");
-        Console.WriteLine("pyRevit 4: 4.8.16.24121 (Production ready release)");
-        Console.WriteLine("pyRevit 5: 5.0.0.24325 (WIP)");
-        Console.WriteLine();
+        //Console.WriteLine("Included Versions");
+        //Console.WriteLine($"pyRevit 4: {}");
+        //Console.WriteLine($"pyRevit 5: {pyRevit5Installer}");
+        //Console.WriteLine();
 
         Console.WriteLine("Please choose an option:");
         Console.WriteLine();
@@ -80,13 +85,13 @@ internal static class Program
         var pyRevit4Installers = ResourceUtils.GetMatchingResourceNames($"{Consts.EmbeddedInstallerPyrevit4}");
         foreach (var installer in pyRevit4Installers)
         {
-            ResourceUtils.ExtractAndInstallResource(installer, @"C:\pyRevit-Master\pyRevit-4");
+            ResourceUtils.ExtractAndInstallResource(installer, Consts.PyRevit4InstallPath);
         }
 
         var pyRevit5Installers = ResourceUtils.GetMatchingResourceNames($"{Consts.EmbeddedInstallerPyrevit5}");
         foreach (var installer in pyRevit5Installers)
         {
-            ResourceUtils.ExtractAndInstallResource(installer, @"C:\pyRevit-Master\pyRevit-5");
+            ResourceUtils.ExtractAndInstallResource(installer, Consts.PyRevit5InstallPath);
         }
 
         if (!PyRevitUtils.IsCommandAvailable(Consts.Pyrevit4Exe) ||
@@ -133,8 +138,24 @@ internal static class Program
 
     private static void EnsureDirectoriesExist()
     {
-        const string directoryPath = Consts.PyRevitRoot;
+        string directoryPath = Consts.PyRevitRoot;
+        string[] previousInstallPaths = Consts.PreviousInstallPaths;
         Console.WriteLine($"Cleaning installation directory: {directoryPath}");
+
+        foreach (string previousInstallPath in previousInstallPaths)
+        {
+            if (Directory.Exists(previousInstallPath))
+            {
+                try
+                {
+                    Directory.Delete(previousInstallPath, true);
+                }
+                catch (Exception ex)
+                {
+                    Console.WriteLine($"Failed to delete directory {previousInstallPath}. Error: {ex.Message}");
+                }
+            }
+        }
 
         if (Directory.Exists(directoryPath))
         {
