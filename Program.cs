@@ -1,5 +1,4 @@
 ﻿using pyRevit.Installer.Utils;
-using System.Configuration;
 
 
 
@@ -22,10 +21,21 @@ internal static class Program
         Console.WriteLine("pyRevit installations located elsewhere will NOT be removed, but you will need to attach to Revit to use these versions again");
         Console.WriteLine();
 
-        //Console.WriteLine("Included Versions");
-        //Console.WriteLine($"pyRevit 4: {}");
-        //Console.WriteLine($"pyRevit 5: {pyRevit5Installer}");
-        //Console.WriteLine();
+        Console.WriteLine("Included Versions ");
+        //get path of embedded installer and dynamically print versions
+        var pyRevit4Installers = ResourceUtils.GetMatchingResourceNames($"{Consts.EmbeddedInstallerPyrevit4}");
+        if (pyRevit4Installers.Last() != null)
+        {
+            Console.WriteLine($"pyRevit 4: {pyRevit4Installers.Last()}");
+        }
+
+
+        var pyRevit5Installers = ResourceUtils.GetMatchingResourceNames($"{Consts.EmbeddedInstallerPyrevit5}");
+        if(pyRevit5Installers.Last() != null) {
+            Console.WriteLine($"pyRevit 5: {pyRevit5Installers.Last()}");
+        }
+
+        Console.WriteLine();
 
         Console.WriteLine("Please choose an option:");
         Console.WriteLine();
@@ -83,36 +93,58 @@ internal static class Program
     {
         Console.WriteLine($"{Consts.EmbeddedInstallerPyrevit4}");
         var pyRevit4Installers = ResourceUtils.GetMatchingResourceNames($"{Consts.EmbeddedInstallerPyrevit4}");
-        foreach (var installer in pyRevit4Installers)
-        {
-            ResourceUtils.ExtractAndInstallResource(installer, Consts.PyRevit4InstallPath);
-        }
+            ResourceUtils.ExtractAndInstallResource(pyRevit4Installers.Last(), Consts.PyRevit4InstallPath);
 
         var pyRevit5Installers = ResourceUtils.GetMatchingResourceNames($"{Consts.EmbeddedInstallerPyrevit5}");
-        foreach (var installer in pyRevit5Installers)
-        {
-            ResourceUtils.ExtractAndInstallResource(installer, Consts.PyRevit5InstallPath);
-        }
+            ResourceUtils.ExtractAndInstallResource(pyRevit5Installers.Last(), Consts.PyRevit5InstallPath);
+
 
         if (!PyRevitUtils.IsCommandAvailable(Consts.Pyrevit4Exe) ||
             !PyRevitUtils.IsCommandAvailable(Consts.Pyrevit5Exe)) return;
 
-        Console.WriteLine();
-        Console.WriteLine("Adding pyRevit-4 to clones");
-        PyRevitUtils.RunCommand($"{Consts.Pyrevit4Exe} revits killall", "Failed to close all Revit processes");
-        PyRevitUtils.RunCommand($"{Consts.Pyrevit4Exe} clones forget --all", "Failed to forget existing pyRevit clones");
-        PyRevitUtils.RunCommand($"{Consts.Pyrevit4Exe} clones add this pyRevit-4", "Failed to add pyRevit-4 clone");
-        Console.WriteLine();
-        Console.WriteLine("Attaching pyRevit-4");
-        PyRevitUtils.AttachPyRevitToRevitVersions("pyRevit-4", Consts.PyRevitFrameworkYears);
+        if (PyRevitUtils.IsCommandAvailable(Consts.Pyrevit4Exe))
+            {
 
-        Console.WriteLine();
-        Console.WriteLine("Adding pyRevit-5 to clones");
-        PyRevitUtils.RunCommand($"{Consts.Pyrevit5Exe} clones add this pyRevit-5", "Failed to add pyRevit-5 clone");
-        Console.WriteLine();
-        Console.WriteLine("Attaching pyRevit-5");
-        PyRevitUtils.AttachPyRevitToRevitVersions("pyRevit-5", Consts.PyRevitCoreYears);
-        Console.WriteLine();
+            Console.WriteLine();
+            Console.WriteLine("Adding pyRevit-4 to clones");
+            PyRevitUtils.RunCommand($"{Consts.Pyrevit4Exe} revits killall", "Failed to close all Revit processes");
+            PyRevitUtils.RunCommand($"{Consts.Pyrevit4Exe} clones forget --all", "Failed to forget existing pyRevit clones");
+            PyRevitUtils.RunCommand($"{Consts.Pyrevit4Exe} clones add this pyRevit-4", "Failed to add pyRevit-4 clone");
+            Console.WriteLine();
+            Console.WriteLine("Attaching pyRevit-4");
+            PyRevitUtils.AttachPyRevitToRevitVersions("pyRevit-4", Consts.PyRevitFrameworkYears);
+
+            foreach (string additionalExtensionSearchPath in Consts.AdditionalExtensionSearchPaths)
+            {
+                if (Directory.Exists(additionalExtensionSearchPath))
+                {
+                    Console.WriteLine($"Adding Custom Extensions to PyRevit4: {additionalExtensionSearchPath}");
+                    PyRevitUtils.RunCommand($"{Consts.Pyrevit4Exe} extensions paths add \"{additionalExtensionSearchPath}\"", "Failed to add custom extensions");
+                }
+            }
+        };
+
+        if (PyRevitUtils.IsCommandAvailable(Consts.Pyrevit5Exe))
+            {
+
+            Console.WriteLine();
+            Console.WriteLine("Adding pyRevit-5 to clones");
+            PyRevitUtils.RunCommand($"{Consts.Pyrevit5Exe} clones add this pyRevit-5", "Failed to add pyRevit-5 clone");
+            Console.WriteLine();
+            Console.WriteLine("Attaching pyRevit-5");
+            PyRevitUtils.AttachPyRevitToRevitVersions("pyRevit-5", Consts.PyRevitCoreYears);
+            Console.WriteLine();
+
+            foreach (string additionalExtensionSearchPath in Consts.AdditionalExtensionSearchPaths)
+            {
+                if (Directory.Exists(additionalExtensionSearchPath))
+                {
+
+                    Console.WriteLine($"Adding Custom Extensions to PyRevit5: {additionalExtensionSearchPath}");
+                    PyRevitUtils.RunCommand($"{Consts.Pyrevit5Exe} extensions paths add \"{additionalExtensionSearchPath}\"", "Failed to add custom extensions");
+                }
+            }
+        }
     }
 
     private static void InstallPyRevit5()
@@ -134,13 +166,26 @@ internal static class Program
         Console.WriteLine("Attaching pyRevit-5");
         PyRevitUtils.AttachPyRevitToRevitVersions("pyRevit-5", Consts.PyRevitFrameworkYears);
         PyRevitUtils.AttachPyRevitToRevitVersions("pyRevit-5", Consts.PyRevitCoreYears);
+
     }
 
     private static void EnsureDirectoriesExist()
     {
         string directoryPath = Consts.PyRevitRoot;
         string[] previousInstallPaths = Consts.PreviousInstallPaths;
-        Console.WriteLine($"Cleaning installation directory: {directoryPath}");
+        if (Directory.Exists(directoryPath))
+        {
+            try
+            {
+
+                Console.WriteLine($"Cleaning installation directory: {directoryPath}");
+                Directory.Delete(directoryPath, true);
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Failed to delete directory {directoryPath}. Error: {ex.Message}");
+            }
+        }
 
         foreach (string previousInstallPath in previousInstallPaths)
         {
@@ -148,6 +193,7 @@ internal static class Program
             {
                 try
                 {
+                    Console.WriteLine($"Cleaning installation directory: {directoryPath}");
                     Directory.Delete(previousInstallPath, true);
                 }
                 catch (Exception ex)
@@ -157,17 +203,6 @@ internal static class Program
             }
         }
 
-        if (Directory.Exists(directoryPath))
-        {
-            try
-            {
-                Directory.Delete(directoryPath, true);
-            }
-            catch (Exception ex)
-            {
-                Console.WriteLine($"Failed to delete directory {directoryPath}. Error: {ex.Message}");
-            }
-        }
 
         try
         {

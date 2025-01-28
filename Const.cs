@@ -1,6 +1,5 @@
 ﻿namespace pyRevit.Installer;
-using System.Configuration;
-using System.Xml;
+
 
 
 internal static class Consts
@@ -15,6 +14,7 @@ internal static class Consts
     internal static readonly int[] PyRevitCoreYears;
     internal static string PyRevit4InstallPath;
     internal static string PyRevit5InstallPath;
+    internal static readonly string[] AdditionalExtensionSearchPaths;
 
     static Consts()
     {
@@ -37,7 +37,7 @@ internal static class Consts
         }
 
         PyRevitRoot = dictionary["PyRevitRoot"];
-        PreviousInstallPaths = dictionary["PreviousInstallPaths"]?.Split(';') ?? Array.Empty<string>() ;
+        PreviousInstallPaths = dictionary["PreviousInstallPaths"]?.Split(',') ?? Array.Empty<string>() ;
         Pyrevit4Exe = dictionary["Pyrevit4Exe"];
         Pyrevit5Exe = dictionary["Pyrevit5Exe"];
         PyRevit4InstallPath = dictionary["PyRevit4InstallPath"];
@@ -46,7 +46,7 @@ internal static class Consts
         PyRevitFrameworkYears = dictionary["PyRevitFrameworkYears"].Split(',').Select(int.Parse).ToArray();
         EmbeddedInstallerPyrevit4 = "pyRevit.Installer.Resources.pyRevit_4*_signed.exe";
         EmbeddedInstallerPyrevit5 = "pyRevit.Installer.Resources.pyRevit_5*_signed.exe";
-
+        AdditionalExtensionSearchPaths = dictionary["AdditionalExtensionSearchPaths"]?.Split(',') ?? Array.Empty<string>();
     }
 
 
