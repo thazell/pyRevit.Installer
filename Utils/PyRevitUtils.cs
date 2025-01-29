@@ -4,7 +4,7 @@ namespace pyRevit.Installer.Utils;
 
 internal static class PyRevitUtils
 {
-    internal static void AttachPyRevitToRevitVersions(string pyRevitVersion, int[] revitYears)
+    internal static void AttachPyRevitToRevitVersions(string pyRevitVersion, string[] revitYears)
     {
         foreach (var revitYear in revitYears)
         {

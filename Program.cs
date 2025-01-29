@@ -1,8 +1,6 @@
 ﻿using pyRevit.Installer.Utils;
-
-
-
 namespace pyRevit.Installer;
+
 
 internal static class Program
 {
@@ -10,17 +8,11 @@ internal static class Program
 
     private static void Main()
     {
+
         Console.WriteLine("Welcome to the (Unofficial) pyRevit Installer!");
         Console.WriteLine();
         Console.WriteLine("This installer automates the process of installing pyRevit 4 and pyRevit 5 side by side.");
         Console.WriteLine();
-        Console.WriteLine("WARNING!");
-        Console.WriteLine("Using this installer will remove any existing pyrevit installation located here:");
-        Console.WriteLine(@"C:\pyRevit-Master");
-        Console.WriteLine();
-        Console.WriteLine("pyRevit installations located elsewhere will NOT be removed, but you will need to attach to Revit to use these versions again");
-        Console.WriteLine();
-
         Console.WriteLine("Included Versions ");
         //get path of embedded installer and dynamically print versions
         var pyRevit4Installers = ResourceUtils.GetMatchingResourceNames($"{Consts.EmbeddedInstallerPyrevit4}");
@@ -37,9 +29,22 @@ internal static class Program
 
         Console.WriteLine();
 
+        CheckExisting.CheckExistingPS();
+        foreach (string previousInstallPath in Consts.PreviousInstallPaths)
+        {
+            if (Directory.Exists(previousInstallPath))
+            {
+                 Console.WriteLine($"WARNING! -- Content here will be removed: {previousInstallPath}");
+                
+            }
+        }
+
+
+
+
         Console.WriteLine("Please choose an option:");
         Console.WriteLine();
-        Console.WriteLine("1. Install both pyRevit 4 (2020-2024) and pyRevit 5 (2025)");
+        Console.WriteLine("1. Recommended: Install both pyRevit 4 (2020-2024) and pyRevit 5 (2025)");
         Console.WriteLine("2. Install only pyRevit 5 (2020-2025)");
         Console.WriteLine("3. Exit");
         Console.WriteLine();
@@ -53,9 +58,8 @@ internal static class Program
         {
             case "1":
 
-                Console.WriteLine("Installing pyRevit 4 for Revit 2020-2024 and pyRevit 5 for Revit 2025...");
                 Console.WriteLine();
-
+                    Console.WriteLine("Installing pyRevit 4 for Revit 2020-2024 and pyRevit 5 for Revit 2025...");
                 EnsureDirectoriesExist();
 
                 InstallPyRevit4And5();
@@ -89,7 +93,9 @@ internal static class Program
         Console.ReadKey();
     }
 
-    private static void InstallPyRevit4And5()
+
+
+private static void InstallPyRevit4And5()
     {
         Console.WriteLine($"{Consts.EmbeddedInstallerPyrevit4}");
         var pyRevit4Installers = ResourceUtils.GetMatchingResourceNames($"{Consts.EmbeddedInstallerPyrevit4}");
@@ -173,6 +179,7 @@ internal static class Program
     {
         string directoryPath = Consts.PyRevitRoot;
         string[] previousInstallPaths = Consts.PreviousInstallPaths;
+        PyRevitUtils.RunCommand($"pyrevit revits killall", "Failed to close all Revit processes");
         if (Directory.Exists(directoryPath))
         {
             try
@@ -193,13 +200,17 @@ internal static class Program
             {
                 try
                 {
-                    Console.WriteLine($"Cleaning installation directory: {directoryPath}");
+                    Console.WriteLine($"Cleaning installation directory: {previousInstallPath}");
                     Directory.Delete(previousInstallPath, true);
                 }
                 catch (Exception ex)
                 {
                     Console.WriteLine($"Failed to delete directory {previousInstallPath}. Error: {ex.Message}");
                 }
+            }
+            else
+            {
+                Console.WriteLine($"System checked for this directory and it was not on this system : {previousInstallPath}");
             }
         }
 
@@ -213,4 +224,6 @@ internal static class Program
             Console.WriteLine($"Failed to create directory {directoryPath}. Error: {ex.Message}");
         }
     }
+
 }
+
