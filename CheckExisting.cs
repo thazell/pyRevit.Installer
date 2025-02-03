@@ -7,7 +7,7 @@ namespace pyRevit.Installer
 {
     internal class CheckExisting
     {
-        public static void CheckExistingPS()
+        public static bool CheckExistingPS()
         {
             string productName = "pyrevit";
             string script = $@"
@@ -43,11 +43,12 @@ namespace pyRevit.Installer
 
                 // Output the result from the script to the console
                 Console.Write(output);
-                if (!string.IsNullOrEmpty(error))
-                    Console.WriteLine("Error: " + error);
+                //if (!string.IsNullOrEmpty(error))
+                    //Console.WriteLine("Error: " + error);
 
-                // Check if any software was found and prompt the user
-                if (output.Contains("Installed"))
+
+                    // Check if any software was found and prompt the user
+                    if (output.Contains("Installed"))
                 {
                     Console.WriteLine("**************************************");
                     Console.WriteLine("We recommend manually uninstalling these version from your machine before continuing");
@@ -72,10 +73,13 @@ namespace pyRevit.Installer
                         Environment.Exit(0);
                     }
                     Console.Clear();
+                    return true;
                 }
                 else
                 {
-                    Console.WriteLine("No existing versions of pyRevit found. Continuing with installation...");
+                    Console.WriteLine("None found, continuing...");
+                    Console.WriteLine("");
+                    return false;
                 }
             }
         }

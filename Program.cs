@@ -29,17 +29,19 @@ internal static class Program
 
         Console.WriteLine();
 
-        CheckExisting.CheckExistingPS();
+        bool alreadyExists = CheckExisting.CheckExistingPS();
+
         foreach (string previousInstallPath in Consts.PreviousInstallPaths)
         {
-            if (Directory.Exists(previousInstallPath))
+            string prevInstallPath = Environment.ExpandEnvironmentVariables(previousInstallPath);
+            if (Directory.Exists(prevInstallPath))
             {
-                 Console.WriteLine($"WARNING! -- Content here will be removed: {previousInstallPath}");
+                 Console.WriteLine($"WARNING! -- Existing folder will be deleted: {prevInstallPath}");
                 
             }
         }
 
-
+        Console.WriteLine();
 
 
         Console.WriteLine("Please choose an option:");
@@ -60,6 +62,11 @@ internal static class Program
 
                 Console.WriteLine();
                     Console.WriteLine("Installing pyRevit 4 for Revit 2020-2024 and pyRevit 5 for Revit 2025...");
+                if (alreadyExists)
+                {
+
+                    CloseRevits();
+                }
                 EnsureDirectoriesExist();
 
                 InstallPyRevit4And5();
@@ -70,7 +77,10 @@ internal static class Program
                 Console.WriteLine();
                 Console.WriteLine("Installing pyRevit 5 for Revit 2020-2025...");
                 Console.WriteLine();
-
+                if (alreadyExists)
+                {
+                    CloseRevits();
+                }
                 EnsureDirectoriesExist();
 
                 InstallPyRevit5();
@@ -93,27 +103,39 @@ internal static class Program
         Console.ReadKey();
     }
 
+    private static void CloseRevits()
+        {
+        try
+        {
+            if (PyRevitUtils.IsCommandAvailable("pyrevit"))
+            {
+            PyRevitUtils.RunCommand($"pyrevit revits killall", "Failed to close all Revit processes");
+            // ensure revit is fully closed
+            //wait 8 seconds
+            Thread.Sleep(8000);
+            }
+        }
+        catch
+        {
+        }
+    }
 
 
-private static void InstallPyRevit4And5()
+    private static void InstallPyRevit4And5()
     {
         Console.WriteLine($"{Consts.EmbeddedInstallerPyrevit4}");
         var pyRevit4Installers = ResourceUtils.GetMatchingResourceNames($"{Consts.EmbeddedInstallerPyrevit4}");
-            ResourceUtils.ExtractAndInstallResource(pyRevit4Installers.Last(), Consts.PyRevit4InstallPath);
+        ResourceUtils.ExtractAndInstallResource(pyRevit4Installers.Last(), Consts.PyRevit4InstallPath);
 
         var pyRevit5Installers = ResourceUtils.GetMatchingResourceNames($"{Consts.EmbeddedInstallerPyrevit5}");
-            ResourceUtils.ExtractAndInstallResource(pyRevit5Installers.Last(), Consts.PyRevit5InstallPath);
+        ResourceUtils.ExtractAndInstallResource(pyRevit5Installers.Last(), Consts.PyRevit5InstallPath);
 
-
-        if (!PyRevitUtils.IsCommandAvailable(Consts.Pyrevit4Exe) ||
-            !PyRevitUtils.IsCommandAvailable(Consts.Pyrevit5Exe)) return;
 
         if (PyRevitUtils.IsCommandAvailable(Consts.Pyrevit4Exe))
             {
 
             Console.WriteLine();
             Console.WriteLine("Adding pyRevit-4 to clones");
-            PyRevitUtils.RunCommand($"{Consts.Pyrevit4Exe} revits killall", "Failed to close all Revit processes");
             PyRevitUtils.RunCommand($"{Consts.Pyrevit4Exe} clones forget --all", "Failed to forget existing pyRevit clones");
             PyRevitUtils.RunCommand($"{Consts.Pyrevit4Exe} clones add this pyRevit-4", "Failed to add pyRevit-4 clone");
             Console.WriteLine();
@@ -122,10 +144,11 @@ private static void InstallPyRevit4And5()
 
             foreach (string additionalExtensionSearchPath in Consts.AdditionalExtensionSearchPaths)
             {
-                if (Directory.Exists(additionalExtensionSearchPath))
+                string extFilePath = Environment.ExpandEnvironmentVariables(additionalExtensionSearchPath);
+                if (Directory.Exists(extFilePath))
                 {
-                    Console.WriteLine($"Adding Custom Extensions to PyRevit4: {additionalExtensionSearchPath}");
-                    PyRevitUtils.RunCommand($"{Consts.Pyrevit4Exe} extensions paths add \"{additionalExtensionSearchPath}\"", "Failed to add custom extensions");
+                    Console.WriteLine($"Adding Custom Extensions to PyRevit4: {extFilePath}");
+                    PyRevitUtils.RunCommand($"{Consts.Pyrevit4Exe} extensions paths add \"{extFilePath}\"", "Failed to add custom extensions");
                 }
             }
         };
@@ -143,15 +166,22 @@ private static void InstallPyRevit4And5()
 
             foreach (string additionalExtensionSearchPath in Consts.AdditionalExtensionSearchPaths)
             {
-                if (Directory.Exists(additionalExtensionSearchPath))
+               string extFilePath = Environment.ExpandEnvironmentVariables(additionalExtensionSearchPath);
+                if (Directory.Exists(extFilePath))
                 {
 
-                    Console.WriteLine($"Adding Custom Extensions to PyRevit5: {additionalExtensionSearchPath}");
-                    PyRevitUtils.RunCommand($"{Consts.Pyrevit5Exe} extensions paths add \"{additionalExtensionSearchPath}\"", "Failed to add custom extensions");
+                    Console.WriteLine($"Adding Custom Extensions to PyRevit5: {extFilePath}");
+                    PyRevitUtils.RunCommand($"{Consts.Pyrevit5Exe} extensions paths add \"{extFilePath}\"", "Failed to add custom extensions");
+                }
+                else
+                {
+                    Console.WriteLine($"No custom extensions found at: {extFilePath}");
                 }
             }
-        }
-    }
+                }
+            }
+            
+    
 
     private static void InstallPyRevit5()
     {
@@ -165,7 +195,7 @@ private static void InstallPyRevit4And5()
 
         Console.WriteLine();
         Console.WriteLine("Adding pyRevit-5 to clones");
-        PyRevitUtils.RunCommand($"{Consts.Pyrevit5Exe} revits killall", "Failed to close all Revit processes");
+
         PyRevitUtils.RunCommand($"{Consts.Pyrevit5Exe} clones forget --all", "Failed to forget existing pyRevit clones");
         PyRevitUtils.RunCommand($"{Consts.Pyrevit5Exe} clones add this pyRevit-5", "Failed to add pyRevit-5 clone");
         Console.WriteLine();
@@ -179,9 +209,9 @@ private static void InstallPyRevit4And5()
     {
         string directoryPath = Consts.PyRevitRoot;
         string[] previousInstallPaths = Consts.PreviousInstallPaths;
-        PyRevitUtils.RunCommand($"pyrevit revits killall", "Failed to close all Revit processes");
         if (Directory.Exists(directoryPath))
         {
+
             try
             {
 
@@ -210,7 +240,7 @@ private static void InstallPyRevit4And5()
             }
             else
             {
-                Console.WriteLine($"System checked for this directory and it was not on this system : {previousInstallPath}");
+                Console.WriteLine($"Checking for directory to remove: {previousInstallPath}");
             }
         }
 
