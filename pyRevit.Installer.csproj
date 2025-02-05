@@ -21,7 +21,7 @@
 
   <ItemGroup>
     <None Remove="Resources\pyRevit_4.8.16.24121_signed.exe" />
-    <None Remove="Resources\pyRevit_5.0.0.25025_signed.exe" />
+    <None Remove="Resources\pyRevit_5.0.0.25034_signed.exe" />
     <None Remove="settings.config" />
   </ItemGroup>
 
@@ -29,7 +29,7 @@
     <EmbeddedResource Include="Resources\pyRevit_4.8.16.24121_signed.exe">
       <CopyToOutputDirectory>Never</CopyToOutputDirectory>
     </EmbeddedResource>
-    <EmbeddedResource Include="Resources\pyRevit_5.0.0.25025_signed.exe">
+    <EmbeddedResource Include="Resources\pyRevit_5.0.0.25034_signed.exe">
       <CopyToOutputDirectory>Never</CopyToOutputDirectory>
     </EmbeddedResource>
   </ItemGroup>
